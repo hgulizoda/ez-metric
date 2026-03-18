@@ -45,7 +45,7 @@ export function ChartSkeleton({ height = 240 }: { height?: number }) {
   return (
     <div className="rounded-2xl p-5 border border-white/5 bg-white/3">
       <Skeleton className="h-5 w-40 mb-4" />
-      <Skeleton style={{ height }} className="w-full rounded-xl" />
+      <Skeleton height={height} className="w-full rounded-xl" />
     </div>
   );
 }

@@ -18,7 +18,7 @@ export default function Punches() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [punchType, setPunchType] = useState<string>('all');
   const [dept, setDept] = useState<string>('all');
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const filters: Partial<PunchFilters> = {
     search: debouncedSearch,

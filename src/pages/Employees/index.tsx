@@ -55,7 +55,7 @@ export default function Employees() {
   const [dept, setDept] = useState<string>('all');
   const [status, setStatus] = useState<string>('all');
   const [showFilters, setShowFilters] = useState(false);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const filters: Partial<EmployeeFilters> = {
     search: debouncedSearch,
