@@ -1,33 +1,53 @@
 import { useState, useRef } from 'react';
-import { Search, Plus, X, Clock, LogIn, LogOut } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Search, X, LogIn, LogOut } from 'lucide-react';
 import { DataTable } from '@/components/shared/DataTable';
 import { useThemeStore } from '@/app/store/themeStore';
 import { notifications } from '@mantine/notifications';
 import { useQuery } from '@tanstack/react-query';
-import { apiGetPunches } from '@/services/api';
+import { apiGetPunches, MOCK_PUNCHES } from '@/services/api';
 import clsx from 'clsx';
 import type { Punch, PunchFilters } from '@/types';
+import { getPunchColumns } from './columns';
 
 const DEPARTMENTS = ['all', 'Mechanical Floor', 'Office', 'Parts', 'Management'] as const;
-const PUNCH_TYPES = ['all', 'IN', 'OUT'] as const;
+const CLOCK_TYPES = ['all', 'IN', 'OUT'] as const;
+const CORRECTED_OPTS = [
+  { value: 'all', label: 'All' },
+  { value: 'false', label: 'Normal' },
+  { value: 'true', label: 'Corrected' },
+] as const;
 
-export default function Punches() {
+// Derive the current simulated state from mock data for the logged-in user (emp-002)
+const CURRENT_USER_ID = 'emp-002';
+function getCurrentClockState() {
+  const userRecords = MOCK_PUNCHES.filter((p) => p.employeeId === CURRENT_USER_ID)
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  const latest = userRecords[0];
+  return latest?.type === 'IN' ? 'in' : 'out';
+}
+
+export default function ClockRecords() {
   const { isDark } = useThemeStore();
+  const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [punchType, setPunchType] = useState<string>('all');
+  const [clockType, setClockType] = useState<string>('all');
+  const [corrected, setCorrected] = useState<string>('all');
   const [dept, setDept] = useState<string>('all');
+  const [clockState, setClockState] = useState<'in' | 'out'>(getCurrentClockState);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const filters: Partial<PunchFilters> = {
     search: debouncedSearch,
-    type: punchType as PunchFilters['type'],
+    type: clockType as PunchFilters['type'],
     department: dept as PunchFilters['department'],
+    corrected: corrected === 'all' ? 'all' : corrected === 'true',
   };
 
   const { data, isLoading } = useQuery({
-    queryKey: ['punches', filters, page],
+    queryKey: ['clocks', filters, page],
     queryFn: () => apiGetPunches(filters, page, 15),
     staleTime: 30 * 1000,
   });
@@ -42,157 +62,98 @@ export default function Punches() {
   const clearFilters = () => {
     setSearch('');
     setDebouncedSearch('');
-    setPunchType('all');
+    setClockType('all');
+    setCorrected('all');
     setDept('all');
     setPage(1);
   };
 
-  const hasActiveFilters = debouncedSearch || punchType !== 'all' || dept !== 'all';
+  const handleClockIn = () => {
+    if (clockState === 'in') {
+      notifications.show({ title: 'Already Clocked In', message: 'You must clock out before clocking in again.', color: 'red' });
+      return;
+    }
+    setClockState('in');
+    notifications.show({ title: 'Clocked In', message: `Welcome! Clocked in at ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.`, color: 'green' });
+  };
 
-  const columns = [
-    {
-      key: 'id',
-      label: 'Punch ID',
-      render: (_: unknown, row: Punch) => (
-        <span className={clsx('text-xs font-mono', isDark ? 'text-gray-500' : 'text-gray-400')}>
-          #{row.id.replace('pch-', '')}
-        </span>
-      ),
-    },
-    {
-      key: 'type',
-      label: 'Type',
-      render: (_: unknown, row: Punch) => (
-        <span
-          className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium"
-          style={
-            row.type === 'IN'
-              ? { backgroundColor: 'rgba(16,185,129,0.15)', color: '#34d399' }
-              : { backgroundColor: 'rgba(99,102,241,0.15)', color: '#818cf8' }
-          }
-        >
-          {row.type === 'IN' ? <LogIn size={11} /> : <LogOut size={11} />}
-          {row.type}
-        </span>
-      ),
-    },
-    {
-      key: 'employeeName',
-      label: 'Employee',
-      sortable: true,
-      render: (_: unknown, row: Punch) => (
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-full gradient-bg flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-            {row.employeeName.charAt(0)}
-          </div>
-          <span className={clsx('text-sm', isDark ? 'text-gray-200' : 'text-gray-700')}>{row.employeeName}</span>
-        </div>
-      ),
-    },
-    {
-      key: 'department',
-      label: 'Department',
-      render: (_: unknown, row: Punch) => (
-        <span className={clsx('text-xs', isDark ? 'text-gray-400' : 'text-gray-500')}>{row.department}</span>
-      ),
-    },
-    {
-      key: 'date',
-      label: 'Date',
-      sortable: true,
-      render: (_: unknown, row: Punch) => (
-        <span className={clsx('text-sm', isDark ? 'text-gray-300' : 'text-gray-600')}>{row.date}</span>
-      ),
-    },
-    {
-      key: 'time',
-      label: 'Time',
-      render: (_: unknown, row: Punch) => (
-        <div className="flex items-center gap-1.5">
-          <Clock size={12} className="text-gray-500" />
-          <span className={clsx('text-sm font-medium', isDark ? 'text-gray-200' : 'text-gray-700')}>{row.time}</span>
-        </div>
-      ),
-    },
-    {
-      key: 'hoursWorked',
-      label: 'Hours',
-      render: (_: unknown, row: Punch) => (
-        <div>
-          {row.hoursWorked ? (
-            <div className="flex items-center gap-1">
-              <span className={clsx('text-sm font-medium', isDark ? 'text-gray-200' : 'text-gray-700')}>
-                {row.hoursWorked.toFixed(2)}h
-              </span>
-              {row.isOvertime && (
-                <span className="text-xs text-yellow-400 bg-yellow-500/10 px-1.5 py-0.5 rounded-full">OT</span>
-              )}
-            </div>
-          ) : (
-            <span className="text-gray-600">—</span>
-          )}
-        </div>
-      ),
-    },
-    {
-      key: 'source',
-      label: 'Source',
-      render: (_: unknown, row: Punch) => (
-        <span
-          className={clsx(
-            'text-xs px-2 py-0.5 rounded-full',
-            row.source === 'Device'
-              ? isDark ? 'bg-white/5 text-gray-400' : 'bg-gray-100 text-gray-500'
-              : 'bg-blue-500/10 text-blue-400'
-          )}
-        >
-          {row.source}
-        </span>
-      ),
-    },
-    {
-      key: 'actions',
-      label: '',
-      render: (_: unknown, row: Punch) => (
-        <button
-          className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors font-medium px-2 py-1 rounded-lg hover:bg-indigo-500/10"
-          onClick={() => notifications.show({ title: 'Edit Punch', message: `Editing punch #${row.id}`, color: 'indigo' })}
-        >
-          Edit
-        </button>
-      ),
-    },
-  ];
+  const handleClockOut = () => {
+    if (clockState === 'out') {
+      notifications.show({ title: 'Not Clocked In', message: 'You must clock in before clocking out.', color: 'red' });
+      return;
+    }
+    setClockState('out');
+    notifications.show({ title: 'Clocked Out', message: `See you! Clocked out at ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.`, color: 'indigo' });
+  };
+
+  const hasActiveFilters = debouncedSearch || clockType !== 'all' || dept !== 'all' || corrected !== 'all';
+
+  const cardStyle = {
+    backgroundColor: isDark ? 'var(--bg-card)' : '#ffffff',
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
+  };
+
+  const columns = getPunchColumns(isDark, navigate);
 
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
           <h1 className={clsx('text-2xl font-bold', isDark ? 'text-white' : 'text-gray-900')}>
-            Punch Records
+            Clock Records
           </h1>
           <p className={clsx('text-sm mt-0.5', isDark ? 'text-gray-500' : 'text-gray-400')}>
             Pay Period: Mar 14 – Mar 20, 2026 &nbsp;•&nbsp; {data?.total ?? 0} records
           </p>
         </div>
-        <button
-          className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm gradient-bg text-white hover:opacity-90 transition-opacity self-start sm:self-auto"
-          onClick={() => notifications.show({ title: 'Create Punch', message: 'Manual punch creation form would open', color: 'indigo' })}
-        >
-          <Plus size={15} />
-          Create Punch
-        </button>
+
+        {/* Clock In / Clock Out buttons */}
+        <div className="flex items-center gap-3 self-start sm:self-auto">
+          {/* Status indicator */}
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium"
+            style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9', border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}` }}>
+            <span
+              className="w-2 h-2 rounded-full"
+              style={{ backgroundColor: clockState === 'in' ? '#10b981' : '#6b7280' }}
+            />
+            <span className={isDark ? 'text-gray-300' : 'text-gray-600'}>
+              {clockState === 'in' ? 'Working' : 'Not Working'}
+            </span>
+          </div>
+          <button
+            onClick={handleClockIn}
+            disabled={clockState === 'in'}
+            className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all"
+            style={{
+              backgroundColor: clockState === 'in' ? 'rgba(16,185,129,0.08)' : 'rgba(16,185,129,0.15)',
+              color: clockState === 'in' ? '#6b7280' : '#34d399',
+              border: `1px solid ${clockState === 'in' ? 'rgba(107,114,128,0.2)' : 'rgba(16,185,129,0.3)'}`,
+              cursor: clockState === 'in' ? 'not-allowed' : 'pointer',
+            }}
+          >
+            <LogIn size={14} />
+            Clock In
+          </button>
+          <button
+            onClick={handleClockOut}
+            disabled={clockState === 'out'}
+            className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all"
+            style={{
+              backgroundColor: clockState === 'out' ? 'rgba(239,68,68,0.05)' : 'rgba(239,68,68,0.12)',
+              color: clockState === 'out' ? '#6b7280' : '#f87171',
+              border: `1px solid ${clockState === 'out' ? 'rgba(107,114,128,0.2)' : 'rgba(239,68,68,0.3)'}`,
+              cursor: clockState === 'out' ? 'not-allowed' : 'pointer',
+            }}
+          >
+            <LogOut size={14} />
+            Clock Out
+          </button>
+        </div>
       </div>
 
       {/* Filter bar */}
-      <div
-        className="rounded-2xl p-4 flex flex-wrap gap-3"
-        style={{
-          backgroundColor: isDark ? 'var(--bg-card)' : '#ffffff',
-          border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
-        }}
-      >
+      <div className="rounded-2xl p-4 flex flex-wrap gap-3" style={cardStyle}>
         {/* Search */}
         <div className="relative flex-1 min-w-[200px]">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
@@ -217,18 +178,38 @@ export default function Punches() {
 
         {/* Type filter */}
         <div className="flex rounded-xl overflow-hidden" style={{ border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.1)'}` }}>
-          {PUNCH_TYPES.map((t) => (
+          {CLOCK_TYPES.map((t) => (
             <button
               key={t}
-              onClick={() => { setPunchType(t); setPage(1); }}
+              onClick={() => { setClockType(t); setPage(1); }}
               className={clsx(
-                'px-3 py-2 text-xs font-medium transition-colors',
-                punchType === t
+                'px-3 py-2 text-xs font-medium transition-colors flex items-center gap-1',
+                clockType === t
                   ? 'gradient-bg text-white'
                   : isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'
               )}
             >
-              {t === 'all' ? 'All' : t}
+              {t === 'IN' && <LogIn size={10} />}
+              {t === 'OUT' && <LogOut size={10} />}
+              {t === 'all' ? 'All Types' : t === 'IN' ? 'Clock In' : 'Clock Out'}
+            </button>
+          ))}
+        </div>
+
+        {/* Corrected filter */}
+        <div className="flex rounded-xl overflow-hidden" style={{ border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.1)'}` }}>
+          {CORRECTED_OPTS.map((o) => (
+            <button
+              key={o.value}
+              onClick={() => { setCorrected(o.value); setPage(1); }}
+              className={clsx(
+                'px-3 py-2 text-xs font-medium transition-colors',
+                corrected === o.value
+                  ? o.value === 'true' ? 'bg-yellow-500/20 text-yellow-300' : 'gradient-bg text-white'
+                  : isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'
+              )}
+            >
+              {o.label}
             </button>
           ))}
         </div>
@@ -270,8 +251,9 @@ export default function Punches() {
         onPageChange={setPage}
         isLoading={isLoading}
         keyExtractor={(row) => row.id}
-        emptyMessage="No punch records found."
+        emptyMessage="No clock records found."
       />
+
     </div>
   );
 }

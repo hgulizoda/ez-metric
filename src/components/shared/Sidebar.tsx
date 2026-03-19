@@ -41,7 +41,7 @@ const NAV_SECTIONS: NavSection[] = [
     title: 'TRACK',
     items: [
       { label: 'Dashboard', icon: <LayoutDashboard size={18} />, path: '/dashboard' },
-      { label: 'Punch Records', icon: <Clock size={18} />, path: '/punches' },
+      { label: 'Clock Records', icon: <Clock size={18} />, path: '/punches' },
     ],
   },
   {

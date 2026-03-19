@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(node -e \"require\\(''tailwindcss''\\); console.log\\(''OK''\\)\")",
-      "Bash(node -e \"require\\(''tailwindcss''\\)\")"
+      "Bash(node -e \"require\\(''tailwindcss''\\)\")",
+      "Bash(npx tsc:*)",
+      "mcp__ide__getDiagnostics"
     ]
   }
 }

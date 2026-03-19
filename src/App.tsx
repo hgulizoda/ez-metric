@@ -1,20 +1,21 @@
-import { Suspense, lazy, type ReactNode } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { MantineProvider } from '@mantine/core';
-import { Notifications } from '@mantine/notifications';
-import { useAuthStore } from '@/app/store/authStore';
-import { MainLayout } from '@/layouts/MainLayout';
+import { Suspense, lazy, type ReactNode } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { MantineProvider } from "@mantine/core";
+import { Notifications } from "@mantine/notifications";
+import { useAuthStore } from "@/app/store/authStore";
+import { MainLayout } from "@/layouts/MainLayout";
 
 // Lazy-loaded pages
-const LoginPage = lazy(() => import('@/pages/Auth/LoginPage'));
-const Dashboard = lazy(() => import('@/pages/Dashboard'));
-const Analytics = lazy(() => import('@/pages/Analytics'));
-const Employees = lazy(() => import('@/pages/Employees'));
-const Punches = lazy(() => import('@/pages/Punches'));
-const Reports = lazy(() => import('@/pages/Reports'));
-const Settings = lazy(() => import('@/pages/Settings'));
-const Profile = lazy(() => import('@/pages/Profile'));
+const LoginPage = lazy(() => import("@/pages/Auth/LoginPage"));
+const Dashboard = lazy(() => import("@/pages/Dashboard"));
+const Analytics = lazy(() => import("@/pages/Analytics"));
+const Employees = lazy(() => import("@/pages/Employees"));
+const Punches = lazy(() => import("@/pages/Punches"));
+const PunchDetail = lazy(() => import("@/pages/Punches/PunchDetail"));
+const Reports = lazy(() => import("@/pages/Reports"));
+const Settings = lazy(() => import("@/pages/Settings"));
+const Profile = lazy(() => import("@/pages/Profile"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -74,11 +75,18 @@ function AppRoutes() {
                     <Route path="/analytics" element={<Analytics />} />
                     <Route path="/employees" element={<Employees />} />
                     <Route path="/punches" element={<Punches />} />
+                    <Route path="/punches/:id" element={<PunchDetail />} />
                     <Route path="/reports" element={<Reports />} />
                     <Route path="/settings" element={<Settings />} />
                     <Route path="/profile" element={<Profile />} />
-                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                    <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                    <Route
+                      path="/"
+                      element={<Navigate to="/dashboard" replace />}
+                    />
+                    <Route
+                      path="*"
+                      element={<Navigate to="/dashboard" replace />}
+                    />
                   </Routes>
                 </Suspense>
               </MainLayout>

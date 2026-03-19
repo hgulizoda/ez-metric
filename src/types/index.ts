@@ -79,6 +79,7 @@ export interface Punch {
   hoursWorked?: number;
   isOvertime?: boolean;
   deviceId?: string;
+  isCorrected?: boolean;
 }
 
 export interface PunchPair {
@@ -186,6 +187,7 @@ export interface PunchFilters {
   type: PunchType | 'all';
   department: Department | 'all';
   employeeId: string;
+  corrected: boolean | 'all';
 }
 
 export interface DateRangeFilter {
