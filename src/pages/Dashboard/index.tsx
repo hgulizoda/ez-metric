@@ -1,18 +1,17 @@
-import { Users, Clock, AlertTriangle, BarChart2, Wifi, LogIn, LogOut, Activity } from 'lucide-react';
+import { Users, Clock, AlertTriangle, BarChart2, Wifi, Activity } from 'lucide-react';
 import { KPICard } from '@/components/ui/KPICard';
 import { HoursBarChart } from '@/components/charts/HoursBarChart';
 import { OvertimeLineChart } from '@/components/charts/OvertimeLineChart';
 import { PunchDonutChart } from '@/components/charts/PunchDonutChart';
+import ClockInOutCard from '@/components/shared/ClockInOutCard';
 import {
   useDashboardMetrics,
   useHoursBarData,
   useOvertimeLineData,
   usePunchDonutData,
-  useActivityFeed,
 } from '@/services/hooks/useMetrics';
 import { useThemeStore } from '@/app/store/themeStore';
 import clsx from 'clsx';
-import type { ActivityEvent } from '@/types';
 
 function SectionCard({ title, children, className }: { title?: string; children: React.ReactNode; className?: string }) {
   const { isDark } = useThemeStore();
@@ -36,53 +35,12 @@ function SectionCard({ title, children, className }: { title?: string; children:
   );
 }
 
-function ActivityItem({ event }: { event: ActivityEvent }) {
-  const { isDark } = useThemeStore();
-  const isIn = event.type === 'IN';
-  const isOut = event.type === 'OUT';
-  const isSystem = event.type === 'system';
-
-  const time = new Date(event.timestamp).toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-  });
-
-  return (
-    <div className="flex items-start gap-3 py-2.5">
-      <div
-        className={clsx(
-          'w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5',
-          isIn && 'bg-emerald-500/15',
-          isOut && 'bg-indigo-500/15',
-          isSystem && 'bg-gray-500/15',
-          !isIn && !isOut && !isSystem && 'bg-yellow-500/15'
-        )}
-      >
-        {isIn && <LogIn size={14} className="text-emerald-400" />}
-        {isOut && <LogOut size={14} className="text-indigo-400" />}
-        {isSystem && <Wifi size={14} className="text-gray-400" />}
-        {!isIn && !isOut && !isSystem && <AlertTriangle size={14} className="text-yellow-400" />}
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className={clsx('text-xs font-medium truncate', isDark ? 'text-gray-200' : 'text-gray-800')}>
-          {event.employeeName}
-        </div>
-        <div className={clsx('text-xs mt-0.5 truncate', isDark ? 'text-gray-500' : 'text-gray-400')}>
-          {event.message}
-        </div>
-      </div>
-      <div className="text-xs text-gray-600 flex-shrink-0">{time}</div>
-    </div>
-  );
-}
-
 export default function Dashboard() {
   const { isDark } = useThemeStore();
   const { data: metrics, isLoading: metricsLoading } = useDashboardMetrics();
   const { data: hoursBar, isLoading: hoursLoading } = useHoursBarData();
   const { data: overtimeLine, isLoading: overtimeLoading } = useOvertimeLineData();
   const { data: donutData, isLoading: donutLoading } = usePunchDonutData();
-  const { data: activity, isLoading: activityLoading } = useActivityFeed();
 
   const kpis = [
     {
@@ -228,29 +186,9 @@ export default function Dashboard() {
           </SectionCard>
         </div>
 
-        {/* Activity Feed */}
-        <SectionCard title="Live Activity">
-          {activityLoading ? (
-            <div className="space-y-3">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="h-10 shimmer rounded-lg" />
-              ))}
-            </div>
-          ) : (
-            <div
-              className="divide-y overflow-y-auto max-h-64 scrollbar-thin pr-1"
-              style={{ '--tw-divide-color': isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.05)' } as React.CSSProperties}
-            >
-              {(activity ?? []).map((event) => (
-                <ActivityItem key={event.id} event={event} />
-              ))}
-            </div>
-          )}
-          <button
-            className="w-full mt-3 text-xs text-indigo-400 hover:text-indigo-300 transition-colors py-1"
-          >
-            View all activity →
-          </button>
+        {/* Clock In / Out */}
+        <SectionCard title="Clock In / Out">
+          <ClockInOutCard />
         </SectionCard>
       </div>
 

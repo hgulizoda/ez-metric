@@ -1,4 +1,5 @@
 import { FileText, Download, Eye, Clock, Users, AlertTriangle, DollarSign, BarChart2, Calendar } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useThemeStore } from '@/app/store/themeStore';
 import { notifications } from '@mantine/notifications';
 import clsx from 'clsx';
@@ -98,13 +99,10 @@ const REPORTS: ReportCard[] = [
 
 export default function Reports() {
   const { isDark } = useThemeStore();
+  const navigate = useNavigate();
 
   const handleView = (report: ReportCard) => {
-    notifications.show({
-      title: `Viewing: ${report.title}`,
-      message: 'Report preview would open in a modal or new tab.',
-      color: 'indigo',
-    });
+    navigate(`/reports/${report.id}`);
   };
 
   const handleExport = (report: ReportCard, format: string) => {

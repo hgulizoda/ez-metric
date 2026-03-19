@@ -166,125 +166,125 @@ export default function Employees() {
       </div>
 
       {/* Search + Filter bar */}
-      <div
-        className="rounded-2xl p-4"
-        style={{
-          backgroundColor: isDark ? 'var(--bg-card)' : '#ffffff',
-          border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
-        }}
-      >
-        <div className="flex flex-col sm:flex-row gap-3">
-          {/* Search */}
-          <div className="relative flex-1">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => handleSearch(e.target.value)}
-              placeholder="Search employees..."
-              className={clsx(
-                'w-full pl-9 pr-4 py-2 rounded-xl text-sm outline-none transition-all',
-                isDark
-                  ? 'bg-white/5 text-gray-200 placeholder-gray-600 border border-white/8 focus:border-indigo-500/50'
-                  : 'bg-gray-50 text-gray-800 placeholder-gray-400 border border-gray-200 focus:border-indigo-400'
-              )}
-            />
-            {search && (
-              <button
-                onClick={() => handleSearch('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
-              >
-                <X size={13} />
-              </button>
-            )}
-          </div>
-
-          {/* Filter toggle */}
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className={clsx(
-              'flex items-center gap-2 px-3 py-2 rounded-xl text-sm transition-colors',
-              showFilters
-                ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
-                : isDark
-                ? 'bg-white/5 text-gray-400 hover:text-gray-200'
-                : 'bg-gray-100 text-gray-500 hover:text-gray-700'
-            )}
+          <div
+            className="rounded-2xl p-4"
+            style={{
+              backgroundColor: isDark ? 'var(--bg-card)' : '#ffffff',
+              border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
+            }}
           >
-            <Filter size={14} />
-            Filters
-            {hasActiveFilters && (
-              <span className="w-2 h-2 bg-indigo-400 rounded-full" />
+            <div className="flex flex-col sm:flex-row gap-3">
+              {/* Search */}
+              <div className="relative flex-1">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  placeholder="Search employees..."
+                  className={clsx(
+                    'w-full pl-9 pr-4 py-2 rounded-xl text-sm outline-none transition-all',
+                    isDark
+                      ? 'bg-white/5 text-gray-200 placeholder-gray-600 border border-white/8 focus:border-indigo-500/50'
+                      : 'bg-gray-50 text-gray-800 placeholder-gray-400 border border-gray-200 focus:border-indigo-400'
+                  )}
+                />
+                {search && (
+                  <button
+                    onClick={() => handleSearch('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                  >
+                    <X size={13} />
+                  </button>
+                )}
+              </div>
+
+              {/* Filter toggle */}
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className={clsx(
+                  'flex items-center gap-2 px-3 py-2 rounded-xl text-sm transition-colors',
+                  showFilters
+                    ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
+                    : isDark
+                    ? 'bg-white/5 text-gray-400 hover:text-gray-200'
+                    : 'bg-gray-100 text-gray-500 hover:text-gray-700'
+                )}
+              >
+                <Filter size={14} />
+                Filters
+                {hasActiveFilters && (
+                  <span className="w-2 h-2 bg-indigo-400 rounded-full" />
+                )}
+              </button>
+
+              {hasActiveFilters && (
+                <button
+                  onClick={clearFilters}
+                  className="text-xs text-red-400 hover:text-red-300 transition-colors px-2"
+                >
+                  Clear all
+                </button>
+              )}
+            </div>
+
+            {/* Expanded filters */}
+            {showFilters && (
+              <div className="flex flex-wrap gap-3 mt-4 pt-4" style={{ borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}` }}>
+                {/* Department filter */}
+                <div>
+                  <label className={clsx('block text-xs mb-1', isDark ? 'text-gray-500' : 'text-gray-400')}>Department</label>
+                  <select
+                    value={dept}
+                    onChange={(e) => { setDept(e.target.value); setPage(1); }}
+                    className={clsx(
+                      'text-sm px-3 py-1.5 rounded-lg outline-none',
+                      isDark
+                        ? 'bg-white/5 text-gray-300 border border-white/8'
+                        : 'bg-gray-50 text-gray-700 border border-gray-200'
+                    )}
+                  >
+                    {DEPARTMENTS.map((d) => (
+                      <option key={d} value={d}>{d === 'all' ? 'All Departments' : d}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Status filter */}
+                <div>
+                  <label className={clsx('block text-xs mb-1', isDark ? 'text-gray-500' : 'text-gray-400')}>Status</label>
+                  <select
+                    value={status}
+                    onChange={(e) => { setStatus(e.target.value); setPage(1); }}
+                    className={clsx(
+                      'text-sm px-3 py-1.5 rounded-lg outline-none',
+                      isDark
+                        ? 'bg-white/5 text-gray-300 border border-white/8'
+                        : 'bg-gray-50 text-gray-700 border border-gray-200'
+                    )}
+                  >
+                    {STATUSES.map((s) => (
+                      <option key={s} value={s}>{s === 'all' ? 'All Statuses' : s.charAt(0).toUpperCase() + s.slice(1).replace('-', ' ')}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
             )}
-          </button>
-
-          {hasActiveFilters && (
-            <button
-              onClick={clearFilters}
-              className="text-xs text-red-400 hover:text-red-300 transition-colors px-2"
-            >
-              Clear all
-            </button>
-          )}
-        </div>
-
-        {/* Expanded filters */}
-        {showFilters && (
-          <div className="flex flex-wrap gap-3 mt-4 pt-4" style={{ borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}` }}>
-            {/* Department filter */}
-            <div>
-              <label className={clsx('block text-xs mb-1', isDark ? 'text-gray-500' : 'text-gray-400')}>Department</label>
-              <select
-                value={dept}
-                onChange={(e) => { setDept(e.target.value); setPage(1); }}
-                className={clsx(
-                  'text-sm px-3 py-1.5 rounded-lg outline-none',
-                  isDark
-                    ? 'bg-white/5 text-gray-300 border border-white/8'
-                    : 'bg-gray-50 text-gray-700 border border-gray-200'
-                )}
-              >
-                {DEPARTMENTS.map((d) => (
-                  <option key={d} value={d}>{d === 'all' ? 'All Departments' : d}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Status filter */}
-            <div>
-              <label className={clsx('block text-xs mb-1', isDark ? 'text-gray-500' : 'text-gray-400')}>Status</label>
-              <select
-                value={status}
-                onChange={(e) => { setStatus(e.target.value); setPage(1); }}
-                className={clsx(
-                  'text-sm px-3 py-1.5 rounded-lg outline-none',
-                  isDark
-                    ? 'bg-white/5 text-gray-300 border border-white/8'
-                    : 'bg-gray-50 text-gray-700 border border-gray-200'
-                )}
-              >
-                {STATUSES.map((s) => (
-                  <option key={s} value={s}>{s === 'all' ? 'All Statuses' : s.charAt(0).toUpperCase() + s.slice(1).replace('-', ' ')}</option>
-                ))}
-              </select>
-            </div>
           </div>
-        )}
-      </div>
 
-      {/* Table */}
-      <DataTable<Employee>
-        columns={columns}
-        data={data?.data ?? []}
-        total={data?.total ?? 0}
-        page={page}
-        pageSize={10}
-        totalPages={data?.totalPages ?? 1}
-        onPageChange={setPage}
-        isLoading={isLoading}
-        keyExtractor={(row) => row.id}
-        emptyMessage="No employees found matching your filters."
-      />
+          {/* Table */}
+          <DataTable<Employee>
+            columns={columns}
+            data={data?.data ?? []}
+            total={data?.total ?? 0}
+            page={page}
+            pageSize={10}
+            totalPages={data?.totalPages ?? 1}
+            onPageChange={setPage}
+            isLoading={isLoading}
+            keyExtractor={(row) => row.id}
+            emptyMessage="No employees found matching your filters."
+          />
     </div>
   );
 }
